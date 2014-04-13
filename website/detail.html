@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title></title>
+<script>
+function getQuerystring(key, default_)
+{
+  if (default_==null) default_="";
+  key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+  var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
+  var qs = regex.exec(window.location.href);
+  if(qs == null)
+    return default_;
+  else
+    return qs[1];
+}
+var planet_name = getQuerystring('planet', 'earth');
+</script>
+
+<style>
+    <style type="text/css"> 
+    body{
+      margin:0px;
+      padding:0px;
+      background-color:#0d0d53;
+    }
+    .style1 {
+      color: #ffffff;
+    font-size: 12px;
+    font-family: "Helvetica";
+    text-align: center;
+  }
+  a:link {
+    text-decoration: none;
+    color: #ffffff;
+    font-variant: normal;
+    background-color: none;
+  } 
+  a:visited {
+    text-decoration: none;
+    color: #ffffff;
+  }  
+   a:hover {
+     text-decoration: none;
+    color: #9a9a9a;
+    background-color: none;
+  }   
+    .alpha a:hover img {
+    opacity: 0.3;
+      filter: alpha(opacity=30);   // for IE
+      -ms-filter: "alpha(opacity=30)";
+  }
+  #title_div {
+    color: #FFFFFF;
+    font-size: 50pt;
+  }
+  </style>
+</style>
+<body text-align='center' align='center' style='background-color:#0d0d53'>
+
+    <div align="center"><a href='index.html'> <img src="icons/maintitle.png"> </a></div>
+    <div id='title_div' align='center' text-align='center'></div>
+    
+<script src="d3.min.js"></script>
+<script src="topojson.v1.min.js"></script>
+<script src='sphere_svg.js'> </script>
+    <script src="three.min.js"></script>
+<div id='canvas_div' align='center'></div>
+    <script>
+      var zoomListener = d3.behavior.zoom();
+      zoomed = function()
+      {
+      }
+      zoomListener.on('zoom', zoomed);
+      d3.select('title').text(planet_name);
+      d3.select('#title_div').text(planet_name);
+//      zoomLis.on('zoom',this.zoomed.bind(this));
+      // (1)レンダラの初期化
+      var renderer = new THREE.WebGLRenderer({ antialias:true });
+      renderer.setSize(640, 640);
+      renderer.setClearColorHex(0xFF0d0d53, 1);
+      document.getElementById('canvas_div').appendChild(renderer.domElement);
+ 
+      // (2)シーンの作成
+      var scene = new THREE.Scene();
+ 
+      // (3)カメラの作成
+      var camera = new THREE.PerspectiveCamera(60, 500 / 500);
+      camera.position = new THREE.Vector3(0, 0, 2);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      scene.add(camera);
+
+      // (4)ライトの作成
+//      var light = new THREE.DirectionalLight(0xcccccc);
+//      light.position = new THREE.Vector3(0.577, 0.577, 0.577);
+//      scene.add(light);
+ 
+      var ambient = new THREE.AmbientLight(0xFFFFFFFF);
+      scene.add(ambient);
+ 
+      // (5)表示する物体の作成
+      var geometry = new THREE.SphereGeometry(1, 32, 16);
+      var material = new THREE.MeshPhongMaterial({
+        color: 0xffffff, ambient: 0xffffff,
+        specular: 0xcccccc, shininess:00, metal:true,
+        map: THREE.ImageUtils.loadTexture('maps/'+planet_name+'.jpg') });
+      var mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+ 
+      // (6)レンダリング
+      var baseTime = +new Date;
+      function render() {
+        requestAnimationFrame(render);
+//        mesh.rotation.y = 0.3 * (+new Date - baseTime) / 1000;
+        mesh.rotation.y = zoomListener.translate()[0]/180;
+        mesh.rotation.x = zoomListener.translate()[1]/360;
+        renderer.render(scene, camera);
+      };
+      render();
+      d3.select('canvas').call(zoomListener);
+    </script>
+
+
+<form method="get" action="detail.html" name="frm">
+  <input type='hidden' name='planet' value='' />
+  <input type="text" name="min" placeholder='temp min' value="" />
+  <input type="text" name="max" placeholder='temp max' value="" />
+  <input type="submit" value="submit">
+</form>
+
+<script>
+d3.select('input').property('value', planet_name + '_temp');
+//var mysphere = new hzSphere('body', planet_name);
+//mysphere.init();
+</script>
+
